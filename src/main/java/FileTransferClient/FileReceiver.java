@@ -11,26 +11,37 @@ public class FileReceiver {
     private String fileName;
     private Socket socket;
 
-    public FileReceiver(String fileName, Socket socket) {
+    public FileReceiver(String fileName, Socket msocket) {
         this.fileName = fileName;
-        this.socket = socket;
+        while(msocket.isConnected()) {
+            System.out.print("conneting..");
+            try {
+                this.socket = new Socket("localhost", 5001);
+                if(this.socket.isConnected()) {
+                    System.out.println("Conneted File Transfer Server");
+                    break;
+                }
+            } catch (IOException e) {
+
+            }
+        }
     }
 
     public void receive() {
         try {
             byte[] contents = new byte[10000];
+            int bytesRead;
 
-            FileOutputStream fos = new FileOutputStream("./receive/test.txt");
+            FileOutputStream fos = new FileOutputStream("./receive/" + fileName);
             BufferedOutputStream bos = new BufferedOutputStream(fos);
             InputStream is = socket.getInputStream();
-
-            int bytesRead = 0;
 
             while ((bytesRead = is.read(contents)) != -1)
                 bos.write(contents, 0, bytesRead);
 
             bos.flush();
-
+            bos.close();
+            fos.close();
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -1,6 +1,7 @@
 package FileTransferServer;
 
 import java.io.*;
+import java.net.ServerSocket;
 import java.net.Socket;
 
 /**
@@ -10,15 +11,22 @@ public class FileSender {
 
     private File file;
     private Socket socket;
+    private ServerSocket serverSocket;
 
     public FileSender(String fileName, Socket socket) {
         this.file = new File(fileName);
-        this.socket  = socket;
+        try {
+            this.serverSocket = new ServerSocket(5001);
+            this.socket = serverSocket.accept();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void send() {
 
         try {
+
             FileInputStream fis = new FileInputStream(file);
             BufferedInputStream bis = new BufferedInputStream(fis);
 
@@ -39,12 +47,18 @@ public class FileSender {
                 contents = new byte[size];
                 bis.read(contents, 0, size);
                 os.write(contents);
-                System.out.print("Sending file ... " + (current * 100) / fileLength + "% complete!");
+                System.out.println("Sending file ... " + (current * 100) / fileLength + "% complete!");
             }
 
             os.flush();
+            os.close();
+            bis.close();
+            fis.close();
+            socket.close();
+            serverSocket.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
+
     }
 }
